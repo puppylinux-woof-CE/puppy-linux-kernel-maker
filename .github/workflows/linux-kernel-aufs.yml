@@ -165,13 +165,6 @@ jobs:
           mksquashfs kernel-headers-squashfs \
             kernel-headers-${KMOD_VERSION}-aufs.sfs \
             -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86
-
-      - name: Package kernel + squashfs
-        run: |
-          tar -cJf huge-kernel-${KMOD_VERSION}-aufs.tar.xz \
-            vmlinuz huge-kernel-${KMOD_VERSION}-aufs.sfs
-          tar -cJf huge-kernel-${KMOD_VERSION}-aufs-usrmerge.tar.xz \
-            vmlinuz huge-kernel-${KMOD_VERSION}-aufs-usrmerge.sfs
             
       - name: Upload kernel package (traditional)
         uses: actions/upload-artifact@v4
@@ -180,6 +173,7 @@ jobs:
           path: |
                  huge-kernel-${KMOD_VERSION}-aufs.sfs
                  vmlinuz
+                 
       - name: Upload kernel package (usrmerge)
         uses: actions/upload-artifact@v4
         with:
