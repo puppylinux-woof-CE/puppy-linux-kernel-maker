@@ -141,6 +141,12 @@ jobs:
              find ./$mdir -maxdepth 2 -type l -name "build" -exec rm -f {} \;
           done
 
+          mkdir -p squashfs-root/usr/include
+          mkdir -p squashfs-root-usrmerge/usr/include
+
+          cp -arf kernel-headers/include/* squashfs-root/usr/include/
+          cp -arf kernel-headers/include/* squashfs-root-usrmerge/usr/include/          
+
           mkdir -p kernel-headers-squashfs/usr/include
           cp -a kernel-headers/include/* kernel-headers-squashfs/usr/include/ 
           
