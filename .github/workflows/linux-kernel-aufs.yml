@@ -177,13 +177,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: huge-kernel-${{ env.KMOD_VERSION }}-aufs
-          path: huge-kernel-${{ env.KMOD_VERSION }}-aufs.tar.xz        
-
+          path: |
+                 huge-kernel-${KMOD_VERSION}-aufs.sfs
+                 vmlinuz
       - name: Upload kernel package (usrmerge)
         uses: actions/upload-artifact@v4
         with:
           name: huge-kernel-${{ env.KMOD_VERSION }}-aufs-usrmerge
-          path: huge-kernel-${{ env.KMOD_VERSION }}-aufs-usrmerge.tar.xz  
+          path: |
+                 huge-kernel-${KMOD_VERSION}-aufs-usrmerge.sfs
+                 vmlinuz
 
       - name: Upload kernel headers
         uses: actions/upload-artifact@v4
