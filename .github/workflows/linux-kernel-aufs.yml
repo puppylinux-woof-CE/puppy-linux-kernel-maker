@@ -238,4 +238,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kernel-headers-${{ env.KMOD_VERSION }}-aufs
-          path: kernel-headers-${{ env.KMOD_VERSION }}-aufs.sfs  
+          path: kernel-headers-${{ env.KMOD_VERSION }}-aufs.sfs
+
+      - name: Upload dkms kernel headers
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-dkms-headers-${{ env.KMOD_VERSION }}-aufs
+          path: kernel-dkms-headers-${{ env.KMOD_VERSION }}-aufs.sfs          
+
+      - name: Upload dkms kernel headers (usrmerge)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-dkms-headers-${{ env.KMOD_VERSION }}-aufs-usrmerge
+          path: kernel-dkms-headers-${{ env.KMOD_VERSION }}-aufs-usrmerge.sfs
