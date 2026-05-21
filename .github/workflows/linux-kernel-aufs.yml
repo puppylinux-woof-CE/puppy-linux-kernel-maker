@@ -156,15 +156,15 @@ jobs:
             .config \
             ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/build
             
-          cp -arf arch/x86 ../kernel-dkms-usrmerge/lib/modules/${KMOD_VERSION}/build/  
+          cp -arf arch/x86 ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/build
 
           # optional but useful metadata
           cp -a System.map ../kernel-dkms/lib/modules/${KMOD_VERSION}/ 2>/dev/null
-          cp -a System.map ../kernel-dkms-usrmerge/lib/modules/${KMOD_VERSION}/ 2>/dev/null
+          cp -a System.map ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/build 2>/dev/null
 
           # required symlink for kernel module system
           ln -sr ../kernel-dkms/lib/modules/${KMOD_VERSION}/build ../kernel-dkms/lib/modules/${KMOD_VERSION}/source
-          ln -sr ../kernel-dkms-usrmerge/lib/modules/${KMOD_VERSION}/build ../kernel-dkms-usrmerge/lib/modules/${KMOD_VERSION}/source
+          ln -sr ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/build ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/source
 
       - name: Install kernel headers
         working-directory: linux
