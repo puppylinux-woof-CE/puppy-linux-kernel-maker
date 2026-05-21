@@ -197,12 +197,30 @@ jobs:
           cp linux/arch/x86/boot/bzImage ./vmlinuz
           cp -f linux/.config kernel-${KMOD_VERSION}.config
       
-          for dkms_fld in "kernel-dkms" "kernel-dkms-usrmerge"
+          for dkms_fld in kernel-dkms kernel-dkms-usrmerge
           do
-            for ext in c o ko S tmp obj
-            do
-              find $dkms_fld/ -type -f -name "*.${ext}" | xargs -i rm -f {}
-            done
+              
+              for dir1 in configs hyperv ia32 lib net power purgatory ras video
+              do
+                rm -rf $dkms_fld/$dir1
+              done
+              
+              find $dkms_fld/ -type f -name "*.c" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.o" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.ko" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.a" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.S" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.tmp" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.obj" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.elf" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.cmd" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "*.bin" | xargs -i rm -f {} 
+              find $dkms_fld/ -type f -name "*.debug" | xargs -i rm -f {}  
+              find $dkms_fld/ -type f -name "*.xz" | xargs -i rm -f {}  
+              find $dkms_fld/ -type f -name "vmlinux" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "vmlinux.*" | xargs -i rm -f {}
+              find $dkms_fld/ -type f -name "bzImage" | xargs -i rm -f {}
+              
           done
           
       - name: Create Kernel Modules SquashFS
