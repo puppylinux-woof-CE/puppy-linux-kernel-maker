@@ -152,7 +152,7 @@ jobs:
         with:
           name: huge-kernel-${{ env.KMOD_VERSION }}-aufs
           path: |
-                 huge-kernel-${KMOD_VERSION}-aufs.sfs
+                 huge-kernel-${{ env.KMOD_VERSION }}-aufs.sfs
                  vmlinuz
                  
       - name: Upload kernel package (usrmerge)
@@ -160,7 +160,7 @@ jobs:
         with:
           name: huge-kernel-${{ env.KMOD_VERSION }}-aufs-usrmerge
           path: |
-                 huge-kernel-${KMOD_VERSION}-aufs-usrmerge.sfs
+                 huge-kernel-${{ env.KMOD_VERSION }}-aufs-usrmerge.sfs
                  vmlinuz
 
       - name: Upload kernel headers
