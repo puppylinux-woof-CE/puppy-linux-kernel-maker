@@ -111,7 +111,8 @@ jobs:
         
       - name: Build modules
         working-directory: linux
-        run: make modules -j"$(nproc)"
+        run: | 
+             make modules -j"$(nproc)"
 
       - name: Install modules into staging
         working-directory: linux
@@ -121,6 +122,47 @@ jobs:
 
       - name: Strip unneeded symbols
         run: find staging/lib/modules -type f -name '*.ko' -exec strip --strip-unneeded {} \;
+
+      - name: Prepare DKMS kernel build tree
+        working-directory: linux
+        run: |
+
+          mkdir -p ../kernel-dkms/lib/modules/${KMOD_VERSION}
+          mkdir -p ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}
+
+          # IMPORTANT: ensure build tree is ready for external modules
+          make prepare
+          make modules_prepare
+          make scripts
+
+          # Copy full minimal build tree required by DKMS
+          cp -a \
+            arch \
+            include \
+            scripts \
+            Module.symvers \
+            Makefile \
+            Kconfig \
+            .config \
+            ../kernel-dkms/lib/modules/${KMOD_VERSION}/build
+
+          cp -a \
+            arch \
+            include \
+            scripts \
+            Module.symvers \
+            Makefile \
+            Kconfig \
+            .config \
+            ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/build            
+
+          # optional but useful metadata
+          cp -a System.map ../kernel-dkms/lib/modules/${KMOD_VERSION}/ 2>/dev/null
+          cp -a System.map ../kernel-dkms-usrmerge/lib/modules/${KMOD_VERSION}/ 2>/dev/null
+
+          # required symlink for kernel module system
+          ln -sr ../kernel-dkms/lib/modules/${KMOD_VERSION}/build ../kernel-dkms/lib/modules/${KMOD_VERSION}/source
+          ln -sr ../kernel-dkms-usrmerge/lib/modules/${KMOD_VERSION}/build ../kernel-dkms-usrmerge/lib/modules/${KMOD_VERSION}/source
 
       - name: Install kernel headers
         working-directory: linux
@@ -145,8 +187,8 @@ jobs:
           mkdir -p squashfs-root-usrmerge/usr/include
 
           cp -arf kernel-headers/include/* squashfs-root/usr/include/
-          cp -arf kernel-headers/include/* squashfs-root-usrmerge/usr/include/          
-
+          cp -arf kernel-headers/include/* squashfs-root-usrmerge/usr/include/   
+      
           mkdir -p kernel-headers-squashfs/usr/include
           cp -a kernel-headers/include/* kernel-headers-squashfs/usr/include/ 
           
@@ -165,7 +207,17 @@ jobs:
           mksquashfs kernel-headers-squashfs \
             kernel-headers-${KMOD_VERSION}-aufs.sfs \
             -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86
+
+      - name: Create Kernel DKMS Headers SquashFS
+        run: |
+          mksquashfs kernel-dkms \
+            kernel-dkms-headers-${KMOD_VERSION}-aufs.sfs \
+            -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86  
             
+          mksquashfs kernel-dkms-usrmerge \
+            kernel-dkms-headers-${KMOD_VERSION}-aufs-usrmerge.sfs \
+            -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86  
+
       - name: Upload kernel package (traditional)
         uses: actions/upload-artifact@v4
         with:
