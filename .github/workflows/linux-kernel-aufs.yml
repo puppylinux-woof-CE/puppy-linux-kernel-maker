@@ -197,11 +197,11 @@ jobs:
           cp linux/arch/x86/boot/bzImage ./vmlinuz
           cp -f linux/.config kernel-${KMOD_VERSION}.config
       
-          for dkms-fld in kernel-dkms kernel-dkms-usrmerge 
+          for dkms_fld in "kernel-dkms" "kernel-dkms-usrmerge"
           do
             for ext in c o ko S tmp obj
             do
-              find $dkms-fld/ -type -f -name "*.${ext}" | xargs -i rm -f {}
+              find $dkms_fld/ -type -f -name "*.${ext}" | xargs -i rm -f {}
             done
           done
           
