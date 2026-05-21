@@ -127,8 +127,8 @@ jobs:
         working-directory: linux
         run: |
 
-          mkdir -p ../kernel-dkms/lib/modules/${KMOD_VERSION}
-          mkdir -p ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}
+          mkdir -p ../kernel-dkms/lib/modules/${KMOD_VERSION}/build
+          mkdir -p ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/build
 
           # IMPORTANT: ensure build tree is ready for external modules
           make prepare
@@ -136,8 +136,7 @@ jobs:
           make scripts
 
           # Copy full minimal build tree required by DKMS
-          cp -a \
-            arch \
+          cp -arf \
             include \
             scripts \
             Module.symvers \
@@ -146,15 +145,18 @@ jobs:
             .config \
             ../kernel-dkms/lib/modules/${KMOD_VERSION}/build
 
-          cp -a \
-            arch \
+          cp -arf arch/x86 ../kernel-dkms/lib/modules/${KMOD_VERSION}/build/
+
+          cp -arf \
             include \
             scripts \
             Module.symvers \
             Makefile \
             Kconfig \
             .config \
-            ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/build            
+            ../kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/build
+            
+          cp -arf arch/x86 ../kernel-dkms-usrmerge/lib/modules/${KMOD_VERSION}/build/  
 
           # optional but useful metadata
           cp -a System.map ../kernel-dkms/lib/modules/${KMOD_VERSION}/ 2>/dev/null
@@ -194,7 +196,15 @@ jobs:
           
           cp linux/arch/x86/boot/bzImage ./vmlinuz
           cp -f linux/.config kernel-${KMOD_VERSION}.config
-
+      
+          for dkms-fld in kernel-dkms kernel-dkms-usrmerge 
+          do
+            for ext in c o ko S tmp obj
+            do
+              find $dkms-fld/ -type -f -name "*.${ext}" | xargs -i rm -f {}
+            done
+          done
+          
       - name: Create Kernel Modules SquashFS
         run: |
           mksquashfs squashfs-root huge-kernel-${KMOD_VERSION}-aufs.sfs \
