@@ -149,35 +149,33 @@ jobs:
 
           # required symlink for kernel module system
           ln -sr ../dkms-header-staging/build ../dkms-header-staging/source
-
-          dkms_fld="../dkms-header-staging"
-              
+          
           for dir1 in configs hyperv ia32 lib net power purgatory ras video mfd
           do
-            find $dkms_fld/ -type d -name "$dir1" | xargs -i rm -rf {}
+            find ../dkms-header-staging/ -type d -name "$dir1" | xargs -i rm -rf {}
           done
           
-          find $dkms_fld/ -type f -name "*.c" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.d" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.o" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.ko" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.a" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.S" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.tmp" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.obj" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.elf" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.cmd" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "*.bin" | xargs -i rm -f {} 
-          find $dkms_fld/ -type f -name "*.debug" | xargs -i rm -f {}  
-          find $dkms_fld/ -type f -name "*.xz" | xargs -i rm -f {}  
-          find $dkms_fld/ -type f -name "vmlinux" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "vmlinux.*" | xargs -i rm -f {}
-          find $dkms_fld/ -type f -name "bzImage" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.c" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.d" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.o" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.ko" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.a" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.S" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.tmp" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.obj" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.elf" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.cmd" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.bin" | xargs -i rm -f {} 
+          find ../dkms-header-staging/ -type f -name "*.debug" | xargs -i rm -f {}  
+          find ../dkms-header-staging/ -type f -name "*.xz" | xargs -i rm -f {}  
+          find ../dkms-header-staging/ -type f -name "vmlinux" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "vmlinux.*" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "bzImage" | xargs -i rm -f {}
 
           cp -arf scripts ../dkms-header-staging/build/
           
           mkdir -p ../dkms-header-staging/build/tools
-          cp -arf tools/objtool ../dkms-header-staging/build/arch/tools/
+          cp -arf tools/objtool ../dkms-header-staging/build/tools/
           
       - name: Install kernel headers
         working-directory: linux
@@ -213,11 +211,11 @@ jobs:
           cp linux/arch/x86/boot/bzImage ./vmlinuz
           cp -f linux/.config kernel-${KMOD_VERSION}.config
               
-          cp -arf $dkms_fld/* squashfs-root/lib/modules/${KMOD_VERSION}/
-          cp -arf $dkms_fld/* squashfs-root-usrmerge/usr/lib/modules/${KMOD_VERSION}/
+          cp -arf ../dkms-header-staging//* squashfs-root/lib/modules/${KMOD_VERSION}/
+          cp -arf ../dkms-header-staging//* squashfs-root-usrmerge/usr/lib/modules/${KMOD_VERSION}/
           
-          cp -arf $dkms_fld/* kernel-dkms/lib/modules/${KMOD_VERSION}/
-          cp -arf $dkms_fld/* kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/
+          cp -arf ../dkms-header-staging//* kernel-dkms/lib/modules/${KMOD_VERSION}/
+          cp -arf ../dkms-header-staging//* kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/
           
       - name: Create Kernel Modules SquashFS
         run: |
