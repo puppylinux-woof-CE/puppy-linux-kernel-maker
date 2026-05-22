@@ -189,8 +189,8 @@ jobs:
           mkdir -p squashfs-root-usrmerge/usr/include
 
           cp -arf kernel-headers/include/* squashfs-root/usr/include/
-          cp -arf kernel-headers/include/* squashfs-root-usrmerge/usr/include/   
-      
+          cp -arf kernel-headers/include/* squashfs-root-usrmerge/usr/include/
+          
           mkdir -p kernel-headers-squashfs/usr/include
           cp -a kernel-headers/include/* kernel-headers-squashfs/usr/include/ 
           
@@ -200,9 +200,9 @@ jobs:
           for dkms_fld in kernel-dkms kernel-dkms-usrmerge
           do
               
-              for dir1 in configs hyperv ia32 lib net power purgatory ras video
+              for dir1 in configs hyperv ia32 lib net power purgatory ras video mfd
               do
-                rm -rf $dkms_fld/$dir1
+                find $dkms_fld/ -type d -name "$dir1" | xargs -i rm -rf {}
               done
               
               find $dkms_fld/ -type f -name "*.c" | xargs -i rm -f {}
@@ -222,6 +222,9 @@ jobs:
               find $dkms_fld/ -type f -name "bzImage" | xargs -i rm -f {}
               
           done
+
+          cp -arf kernel-dkms/* squashfs-root/
+          cp -arf kernel-dkms-usrmerge/* squashfs-root-usrmerge/
           
       - name: Create Kernel Modules SquashFS
         run: |
