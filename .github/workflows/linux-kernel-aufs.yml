@@ -144,7 +144,8 @@ jobs:
             .config \
             ../dkms-header-staging/build
 
-          cp -arf arch/x86 ../dkms-header-staging/build
+          mkdir -p ../dkms-header-staging/build/arch
+          cp -arf arch/x86 ../dkms-header-staging/build/arch/
 
           # required symlink for kernel module system
           ln -sr ../dkms-header-staging/build ../dkms-header-staging/build/source
