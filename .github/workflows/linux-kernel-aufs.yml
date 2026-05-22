@@ -211,11 +211,11 @@ jobs:
           cp linux/arch/x86/boot/bzImage ./vmlinuz
           cp -f linux/.config kernel-${KMOD_VERSION}.config
               
-          cp -arf ../dkms-header-staging//* squashfs-root/lib/modules/${KMOD_VERSION}/
-          cp -arf ../dkms-header-staging//* squashfs-root-usrmerge/usr/lib/modules/${KMOD_VERSION}/
+          cp -arf dkms-header-staging/* squashfs-root/lib/modules/${KMOD_VERSION}/
+          cp -arf dkms-header-staging/* squashfs-root-usrmerge/usr/lib/modules/${KMOD_VERSION}/
           
-          cp -arf ../dkms-header-staging//* kernel-dkms/lib/modules/${KMOD_VERSION}/
-          cp -arf ../dkms-header-staging//* kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/
+          cp -arf dkms-header-staging/* kernel-dkms/lib/modules/${KMOD_VERSION}/
+          cp -arf dkms-header-staging/* kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/
           
       - name: Create Kernel Modules SquashFS
         run: |
