@@ -133,11 +133,13 @@ jobs:
           make prepare
           make modules_prepare
           make scripts
+          make tools/objtool
 
           # Copy full minimal build tree required by DKMS
           cp -arf \
             include \
             scripts \
+            tools \
             Module.symvers \
             Makefile \
             Kconfig \
@@ -192,6 +194,7 @@ jobs:
           done
           
           find $dkms_fld/ -type f -name "*.c" | xargs -i rm -f {}
+          find $dkms_fld/ -type f -name "*.d" | xargs -i rm -f {}
           find $dkms_fld/ -type f -name "*.o" | xargs -i rm -f {}
           find $dkms_fld/ -type f -name "*.ko" | xargs -i rm -f {}
           find $dkms_fld/ -type f -name "*.a" | xargs -i rm -f {}
