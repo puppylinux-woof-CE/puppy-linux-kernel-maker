@@ -152,7 +152,7 @@ jobs:
           
           for dir1 in configs hyperv ia32 lib net power purgatory ras video mfd
           do
-            find ../dkms-header-staging/ -type d -name "$dir1" | xargs -i rm -rf {}
+            find ../dkms-header-staging/build/arch -type d -name "$dir1" | xargs -i rm -rf {}
           done
           
           find ../dkms-header-staging/ -type f -name "*.c" | xargs -i rm -f {}
