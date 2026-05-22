@@ -138,7 +138,6 @@ jobs:
           # Copy full minimal build tree required by DKMS
           cp -arf \
             include \
-            tools \
             Module.symvers \
             Makefile \
             Kconfig \
