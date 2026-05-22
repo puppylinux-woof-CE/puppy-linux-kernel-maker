@@ -127,6 +127,8 @@ jobs:
         working-directory: linux
         run: |
 
+          CPU_ARCH="x86"
+          
           mkdir -p ../dkms-header-staging/build
 
           # IMPORTANT: ensure build tree is ready for external modules
@@ -145,14 +147,14 @@ jobs:
             ../dkms-header-staging/build
 
           mkdir -p ../dkms-header-staging/build/arch
-          cp -arf arch/x86 ../dkms-header-staging/build/arch/
+          cp -arf arch/$CPU_ARCH ../dkms-header-staging/build/arch/
 
           # required symlink for kernel module system
           ln -sr ../dkms-header-staging/build ../dkms-header-staging/source
           
           for dir1 in configs hyperv ia32 lib net power purgatory ras video mfd
           do
-            find ../dkms-header-staging/build/arch -type d -name "$dir1" | xargs -i rm -rf {}
+            find ../dkms-header-staging/build/arch/$CPU_ARCH -type d -name "$dir1" | xargs -i rm -rf {}
           done
           
           find ../dkms-header-staging/ -type f -name "*.c" | xargs -i rm -f {}
@@ -176,7 +178,19 @@ jobs:
           
           mkdir -p ../dkms-header-staging/build/tools
           cp -arf tools/objtool ../dkms-header-staging/build/tools/
+
+          for dir2 in atomic bash-completion clang-tools coccinelle crypto dummy-tools gdb ipe ksymoops livepatch package selinux tracing
+          do
+            find ../dkms-header-staging/build/scripts -type d -name "$dir2" | xargs -i rm -rf {}
+          done          
+
+          find ../dkms-header-staging/ -type f -name "*.o" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.cmd" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.tmp" | xargs -i rm -f {}
+          find ../dkms-header-staging/build/tools/ -type f -name "*.a" | xargs -i rm -f {}
           
+          find ../dkms-header-staging/ -type f -name ".gitignore" | xargs -i rm -f {}
+
       - name: Install kernel headers
         working-directory: linux
         run: |
