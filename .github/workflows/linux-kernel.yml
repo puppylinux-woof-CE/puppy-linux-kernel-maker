@@ -1,8 +1,8 @@
 name: Puppy Linux Kernel Build
 
 on:
-  #schedule:
-    #- cron: '0 2 */20 * *' # daily at 02:00 UTC
+  # schedule:
+  # - cron: '0 2 */20 * *' # daily at 02:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
     env:
       BASE_VERSION: "7.0"
       CUSTOM_VERSION: "opkm"
-
+ 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,11 +34,8 @@ jobs:
           set -euo pipefail
 
           echo "Checking kernel.org releases for base ${BASE_VERSION}..."
-
-          # Fetch releases.json once
           releases_json="$(curl -sS https://www.kernel.org/releases.json)"
 
-          # Use jq to filter versions that start with BASE_VERSION + '.' then sort and get last
           LATEST=$(printf '%s\n' "$releases_json" \
             | jq -r --arg base "${BASE_VERSION}." '.releases[]
                 | select(.version | startswith($base))
@@ -47,14 +44,13 @@ jobs:
             | tail -n 1)
 
           if [ -z "$LATEST" ]; then
-            echo "No release found for ${BASE_VERSION}. Exiting."
-            echo "KERNEL_VERSION=$BASE_VERSION" >> $GITHUB_ENV    
+            echo "No patch found. Using base ${BASE_VERSION}"
+            echo "KERNEL_VERSION=$BASE_VERSION" >> $GITHUB_ENV
           else
             echo "Detected latest kernel patch: $LATEST"
-            echo "KERNEL_VERSION=$LATEST" >> $GITHUB_ENV           
+            echo "KERNEL_VERSION=$LATEST" >> $GITHUB_ENV
           fi
-
-
+          
       - name: Download Linux kernel
         run: |
           wget https://cdn.kernel.org/pub/linux/kernel/v${BASE_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz
@@ -84,15 +80,16 @@ jobs:
         with:
           name: kernel-${{ env.KMOD_VERSION }}-config
           path: |
-                linux/kernel-${{ env.KMOD_VERSION }}.config          
-
+                linux/kernel-${{ env.KMOD_VERSION }}.config              
+          
       - name: Build kernel image
         working-directory: linux
         run: make -j"$(nproc)" bzImage
         
       - name: Build modules
         working-directory: linux
-        run: make modules -j"$(nproc)"
+        run: | 
+             make modules -j"$(nproc)"
 
       - name: Install modules into staging
         working-directory: linux
@@ -102,6 +99,74 @@ jobs:
 
       - name: Strip unneeded symbols
         run: find staging/lib/modules -type f -name '*.ko' -exec strip --strip-unneeded {} \;
+
+      - name: Prepare DKMS kernel build tree
+        working-directory: linux
+        run: |
+
+          CPU_ARCH="x86"
+          
+          mkdir -p ../dkms-header-staging/build
+
+          # IMPORTANT: ensure build tree is ready for external modules
+          make prepare
+          make modules_prepare
+          make scripts
+          make tools/objtool
+
+          # Copy full minimal build tree required by DKMS
+          cp -arf \
+            include \
+            Module.symvers \
+            Makefile \
+            Kconfig \
+            .config \
+            ../dkms-header-staging/build
+
+          mkdir -p ../dkms-header-staging/build/arch
+          cp -arf arch/$CPU_ARCH ../dkms-header-staging/build/arch/
+
+          # required symlink for kernel module system
+          ln -sr ../dkms-header-staging/build ../dkms-header-staging/source
+          
+          for dir1 in configs hyperv ia32 lib net power purgatory ras video mfd
+          do
+            find ../dkms-header-staging/build/arch/$CPU_ARCH -type d -name "$dir1" | xargs -i rm -rf {}
+          done
+          
+          find ../dkms-header-staging/ -type f -name "*.c" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.d" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.o" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.ko" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.a" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.S" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.tmp" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.obj" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.elf" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.cmd" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.bin" | xargs -i rm -f {} 
+          find ../dkms-header-staging/ -type f -name "*.debug" | xargs -i rm -f {}  
+          find ../dkms-header-staging/ -type f -name "*.xz" | xargs -i rm -f {}  
+          find ../dkms-header-staging/ -type f -name "vmlinux" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "vmlinux.*" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "bzImage" | xargs -i rm -f {}
+
+          cp -arf scripts ../dkms-header-staging/build/
+          
+          mkdir -p ../dkms-header-staging/build/tools
+          cp -arf tools/objtool ../dkms-header-staging/build/tools/
+
+          for dir2 in atomic bash-completion clang-tools coccinelle crypto dummy-tools gdb ipe ksymoops livepatch package selinux tracing
+          do
+            find ../dkms-header-staging/build/scripts -type d -name "$dir2" | xargs -i rm -rf {}
+          done          
+
+          find ../dkms-header-staging/ -type f -name "*.o" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.cmd" | xargs -i rm -f {}
+          find ../dkms-header-staging/ -type f -name "*.tmp" | xargs -i rm -f {}
+          find ../dkms-header-staging/build/tools/ -type f -name "*.a" | xargs -i rm -f {}
+          
+          find ../dkms-header-staging/ -type f -name ".gitignore" | xargs -i rm -f {}
 
       - name: Install kernel headers
         working-directory: linux
@@ -113,6 +178,9 @@ jobs:
         run: |
           mkdir -p squashfs-root/lib/modules
           mkdir -p squashfs-root-usrmerge/usr/lib/modules
+          
+          mkdir -p kernel-dkms/lib/modules/${KMOD_VERSION}
+          mkdir -p kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}
          
           cp -arf staging/lib/modules/* squashfs-root/lib/modules/          
           cp -arf staging/lib/modules/* squashfs-root-usrmerge/usr/lib/modules/
@@ -126,14 +194,20 @@ jobs:
           mkdir -p squashfs-root-usrmerge/usr/include
 
           cp -arf kernel-headers/include/* squashfs-root/usr/include/
-          cp -arf kernel-headers/include/* squashfs-root-usrmerge/usr/include/          
-
+          cp -arf kernel-headers/include/* squashfs-root-usrmerge/usr/include/
+          
           mkdir -p kernel-headers-squashfs/usr/include
           cp -a kernel-headers/include/* kernel-headers-squashfs/usr/include/ 
           
           cp linux/arch/x86/boot/bzImage ./vmlinuz
           cp -f linux/.config kernel-${KMOD_VERSION}.config
-
+              
+          cp -arf dkms-header-staging/* squashfs-root/lib/modules/${KMOD_VERSION}/
+          cp -arf dkms-header-staging/* squashfs-root-usrmerge/usr/lib/modules/${KMOD_VERSION}/
+          
+          cp -arf dkms-header-staging/* kernel-dkms/lib/modules/${KMOD_VERSION}/
+          cp -arf dkms-header-staging/* kernel-dkms-usrmerge/usr/lib/modules/${KMOD_VERSION}/
+          
       - name: Create Kernel Modules SquashFS
         run: |
           mksquashfs squashfs-root huge-kernel-${KMOD_VERSION}.sfs \
@@ -146,25 +220,47 @@ jobs:
           mksquashfs kernel-headers-squashfs \
             kernel-headers-${KMOD_VERSION}.sfs \
             -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86
+
+      - name: Create Kernel DKMS Headers SquashFS
+        run: |
+          mksquashfs kernel-dkms \
+            kernel-dkms-headers-${KMOD_VERSION}.sfs \
+            -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86  
             
+          mksquashfs kernel-dkms-usrmerge \
+            kernel-dkms-headers-${KMOD_VERSION}-usrmerge.sfs \
+            -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86  
+
       - name: Upload kernel package (traditional)
         uses: actions/upload-artifact@v4
         with:
-          name: huge-kernel-${{ env.KMOD_VERSION }}-aufs
+          name: huge-kernel-${{ env.KMOD_VERSION }}
           path: |
-                 huge-kernel-${{ env.KMOD_VERSION }}-aufs.sfs
+                 huge-kernel-${{ env.KMOD_VERSION }}.sfs
                  vmlinuz
                  
       - name: Upload kernel package (usrmerge)
         uses: actions/upload-artifact@v4
         with:
-          name: huge-kernel-${{ env.KMOD_VERSION }}-aufs-usrmerge
+          name: huge-kernel-${{ env.KMOD_VERSION }}-usrmerge
           path: |
-                 huge-kernel-${{ env.KMOD_VERSION }}-aufs-usrmerge.sfs
+                 huge-kernel-${{ env.KMOD_VERSION }}-usrmerge.sfs
                  vmlinuz
 
       - name: Upload kernel headers
         uses: actions/upload-artifact@v4
         with:
           name: kernel-headers-${{ env.KMOD_VERSION }}
-          path: kernel-headers-${{ env.KMOD_VERSION }}.sfs  
+          path: kernel-headers-${{ env.KMOD_VERSION }}.sfs
+
+      - name: Upload dkms kernel headers
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-dkms-headers-${{ env.KMOD_VERSION }}
+          path: kernel-dkms-headers-${{ env.KMOD_VERSION }}.sfs          
+
+      - name: Upload dkms kernel headers (usrmerge)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-dkms-headers-${{ env.KMOD_VERSION }}-usrmerge
+          path: kernel-dkms-headers-${{ env.KMOD_VERSION }}-usrmerge.sfs
