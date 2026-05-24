@@ -15,6 +15,8 @@ jobs:
     env:
       BASE_VERSION: "7.0"
       CUSTOM_VERSION: "opkm"
+      TARGET_CPU_ARCH: "x86"
+      
       AUFS_REPO: "https://github.com/sfjro/aufs-standalone.git"
       AUFS_BRANCH: "aufs7.0"  # Replace with desired AUFS branch
       AUFS_PATCH_FILES: "aufs7-kbuild.patch aufs7-base.patch aufs7-mmap.patch aufs7-standalone.patch"
@@ -127,7 +129,7 @@ jobs:
         working-directory: linux
         run: |
 
-          CPU_ARCH="x86"
+          CPU_ARCH=$TARGET_CPU_ARCH
           
           mkdir -p ../dkms-header-staging/build
 
