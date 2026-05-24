@@ -240,10 +240,10 @@ jobs:
           mksquashfs squashfs-root-usrmerge huge-kernel-${KMOD_VERSION}-aufs-usrmerge.sfs \
             -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86
 
-      - name: Create Kernel Headers SquashFS
+      - name: Create Kernel Userspace Headers SquashFS
         run: |
           mksquashfs kernel-headers-squashfs \
-            kernel-headers-${KMOD_VERSION}-aufs.sfs \
+            kernel-userspace-headers-${KMOD_VERSION}-aufs.sfs \
             -comp xz -Xdict-size 100% -b 1M -noappend -Xbcj x86
 
       - name: Create Kernel DKMS Headers SquashFS
@@ -272,19 +272,19 @@ jobs:
                  huge-kernel-${{ env.KMOD_VERSION }}-aufs-usrmerge.sfs
                  vmlinuz
 
-      - name: Upload kernel headers
+      - name: Upload kernel userspace headers
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-headers-${{ env.KMOD_VERSION }}-aufs
-          path: kernel-headers-${{ env.KMOD_VERSION }}-aufs.sfs
+          name: kernel-userspace-headers-${{ env.KMOD_VERSION }}-aufs
+          path: kernel-userspace-headers-${{ env.KMOD_VERSION }}-aufs.sfs
 
-      - name: Upload dkms kernel headers
+      - name: Upload DKMS kernel headers (traditional)
         uses: actions/upload-artifact@v4
         with:
           name: kernel-dkms-headers-${{ env.KMOD_VERSION }}-aufs
           path: kernel-dkms-headers-${{ env.KMOD_VERSION }}-aufs.sfs          
 
-      - name: Upload dkms kernel headers (usrmerge)
+      - name: Upload DKMS kernel headers (usrmerge)
         uses: actions/upload-artifact@v4
         with:
           name: kernel-dkms-headers-${{ env.KMOD_VERSION }}-aufs-usrmerge
